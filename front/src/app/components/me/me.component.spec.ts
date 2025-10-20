@@ -1,5 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, flush, flushMicrotasks, TestBed } from '@angular/core/testing';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,40 +6,31 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
-import { of } from 'rxjs';
 import { SessionService } from 'src/app/services/session.service';
 import { UserService } from 'src/app/services/user.service';
-import { User } from 'src/app/interfaces/user.interface';
 
 import { MeComponent } from './me.component';
+import { SessionInformation } from 'src/app/interfaces/sessionInformation.interface';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('MeComponent', () => {
   let component: MeComponent;
   let fixture: ComponentFixture<MeComponent>;
-
-  const mockSessionService = {
-    sessionInformation: {
-      admin: true,
-      id: 1,
-    },
-    logOut: jest.fn()
-  }
-
-  const mockUserService = {
-    getById: jest.fn().mockReturnValue(of({ id: mockSessionService.sessionInformation.id} as User)),
-    delete: jest.fn().mockReturnValue(of({}))
-  } as any;
-
-  const mockSnackBar = {
-    open: jest.fn()
-  } as any;
+  let sessionService: SessionService;
+  let userService: UserService;
+  let snackBar: MatSnackBar;
+  let httpMock: HttpTestingController;
   
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     await TestBed.configureTestingModule({
       declarations: [MeComponent],
       imports: [
         MatSnackBarModule,
-        HttpClientModule,
+        HttpClientTestingModule,
+        NoopAnimationsModule,
         MatCardModule,
         MatFormFieldModule,
         MatIconModule,
@@ -48,16 +38,21 @@ describe('MeComponent', () => {
         RouterTestingModule
       ],
       providers: [
-        { provide: SessionService, useValue: mockSessionService },
-        { provide: UserService, useValue: mockUserService },
-        { provide: MatSnackBar, useValue: mockSnackBar },
+        SessionService,
+        UserService,
         { provide: Router, useValue: { navigate: jest.fn() } }, 
       ],
     })
       .compileComponents();
-
+        
+    sessionService = TestBed.inject(SessionService);
+    sessionService.logIn({ id: 42, admin: true } as SessionInformation);
+    userService = TestBed.inject(UserService);
+    snackBar = TestBed.inject(MatSnackBar);
+    httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(MeComponent);
     component = fixture.componentInstance;
+    
     fixture.detectChanges();
   });
 
@@ -72,15 +67,24 @@ describe('MeComponent', () => {
     backSpy.mockRestore();
   });
 
-  it('should call delete(), open snackbar, logout and navigate home', () => {
+  it('should call delete(), open snackbar, logout and navigate home', fakeAsync(() => {
     const router = TestBed.inject(Router);
     const navigateSpy = jest.spyOn(router, 'navigate');
+    const sessionServiceLogOut = jest.spyOn(sessionService, 'logOut');
+    const snackBarOpen = jest.spyOn(snackBar, 'open');
 
     component.delete();
 
-    expect(mockUserService.delete).toHaveBeenCalledWith(mockSessionService.sessionInformation.id.toString());
-    expect(mockSnackBar.open).toHaveBeenCalled();
-    expect(mockSessionService.logOut).toHaveBeenCalled();
+    const req1 = httpMock.expectOne(
+      r => r.method === 'DELETE' 
+      && r.url.includes('api/user/42')
+    );
+    req1.flush({ success: true });
+    expect(snackBarOpen).toHaveBeenCalled();
+    expect(sessionServiceLogOut).toHaveBeenCalled();
     expect(navigateSpy).toHaveBeenCalledWith(['/']);
-  });
+
+    flushMicrotasks();
+    flush();
+  }));
 });
