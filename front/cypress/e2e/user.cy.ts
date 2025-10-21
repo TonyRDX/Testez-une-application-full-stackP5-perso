@@ -3,7 +3,7 @@ describe('User spec (register, login & account)', () => {
     id: 1,
     email: "yoga@studio.com",
     password: "test!1234",
-    firstName: "Tony",
+    firstName: "Tonyyy",
     lastName: "Name"
   }
 
