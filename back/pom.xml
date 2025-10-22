@@ -118,6 +118,14 @@
 						<goals>
 							<goal>report</goal>
 						</goals>
+						<configuration>
+							<element>BUNDLE</element>
+							<excludes>
+								<exclude>**/dto/**</exclude>
+								<exclude>**/models/**</exclude>
+								<exclude>**/*MapperImpl.class</exclude>
+							</excludes>
+						</configuration>
 					</execution>
 
 					<execution>
