@@ -1,5 +1,7 @@
-# Yoga App !
+# Execute
+mvn spring-boot:run
 
+# Run tests
 
 For launch and generate the jacoco code coverage:
 > mvn clean test
