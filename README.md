@@ -8,8 +8,8 @@ Coverage file : back/target/site/jacoco/index.html
 # Front Testing
 ## Unit / Jest
 npm run test
-Coverage file : front/coverage/lcov-report/index.html
+Coverage file : front/coverage/jest/lcov-report/index.html
 
 ## E2E run fast CLI test (to update coverage)
 npm run cypress:run
-Coverage file : front/coverage/jest/lcov-report/index.html
+Coverage file : front/coverage/lcov-report/index.html
