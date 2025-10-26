@@ -1,5 +1,8 @@
 # Install & misc
 Follow each README or check package.json commands.
+JDK version : 8
+Angular version : 14.2
+Node version : 16
 
 # Back testing
 mvn clean test
